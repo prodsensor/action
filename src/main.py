@@ -153,11 +153,11 @@ class ProdSensorAction:
         verdict = report.get("verdict", "UNKNOWN")
         score = report.get("score", "N/A")
 
-        # Verdict emoji and color
-        if verdict == "PRODUCTION_READY":
+        # Verdict emoji and color (handle both API formats)
+        if verdict in ("PRODUCTION_READY", "PROD_READY"):
             verdict_emoji = ":white_check_mark:"
             verdict_text = "**PRODUCTION READY**"
-        elif verdict == "NOT_PRODUCTION_READY":
+        elif verdict in ("NOT_PRODUCTION_READY", "NOT_PROD_READY"):
             verdict_emoji = ":x:"
             verdict_text = "**NOT PRODUCTION READY**"
         else:
@@ -278,9 +278,10 @@ class ProdSensorAction:
             report = self.get_report(run_id)
             self.log("::endgroup::")
 
-            # Extract results
-            verdict = report.get("verdict", "UNKNOWN")
-            score = report.get("score")
+            # Extract results from summary section
+            summary = report.get("summary", {})
+            verdict = summary.get("verdict", report.get("verdict", "UNKNOWN"))
+            score = summary.get("overall_score", report.get("score"))
             findings = report.get("findings", [])
             blocker_count = len([f for f in findings if f.get("severity") == "Blocker"])
             major_count = len([f for f in findings if f.get("severity") == "Major"])
@@ -315,9 +316,9 @@ class ProdSensorAction:
                     return EXIT_NOT_PRODUCTION_READY
                 return EXIT_PRODUCTION_READY
             else:  # not-ready (default)
-                if verdict == "PRODUCTION_READY":
+                if verdict in ("PRODUCTION_READY", "PROD_READY"):
                     return EXIT_PRODUCTION_READY
-                elif verdict == "CONDITIONALLY_READY":
+                elif verdict in ("CONDITIONALLY_READY", "CONDITIONAL"):
                     self.log("Build warning: conditionally ready", "warning")
                     return EXIT_CONDITIONALLY_READY
                 else:
