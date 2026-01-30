@@ -30,7 +30,8 @@ class ProdSensorAction:
     def __init__(self):
         # Read inputs from environment
         self.api_key = os.environ.get("PRODSENSOR_API_KEY")
-        self.api_url = os.environ.get("PRODSENSOR_API_URL", self.DEFAULT_API_URL).rstrip("/")
+        # Use 'or' to handle empty string (when input not provided)
+        self.api_url = (os.environ.get("PRODSENSOR_API_URL") or self.DEFAULT_API_URL).rstrip("/")
         self.repo_url = os.environ.get("INPUT_REPO_URL")
         self.fail_on = os.environ.get("INPUT_FAIL_ON", "not-ready")
         self.comment_on_pr = os.environ.get("INPUT_COMMENT_ON_PR", "true").lower() == "true"
@@ -113,7 +114,8 @@ class ProdSensorAction:
             "repo_url": self.repo_url
         })
 
-        return result["run_id"]
+        # API returns 'id', not 'run_id'
+        return result.get("run_id") or result.get("id")
 
     def get_status(self, run_id: str) -> Dict[str, Any]:
         """Get analysis status"""
