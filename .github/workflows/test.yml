@@ -1,0 +1,19 @@
+name: Test ProdSensor Action
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run ProdSensor Analysis
+        uses: prodsensor/action@v1
+        with:
+          api-key: ${{ secrets.PRODSENSOR_API_KEY }}
+          repo-url: 'https://github.com/pypa/sampleproject'
+          fail-on: 'never'
+          comment-on-pr: 'false'
+          timeout: '300'
